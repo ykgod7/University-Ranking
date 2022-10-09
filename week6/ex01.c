@@ -36,7 +36,7 @@ int rFE(int k, int l, int r) {
 int findElement(int k) {
     return rFE(k,0,n-1);
 }
-
+/////////
 int main() {
 
     int k,index;
