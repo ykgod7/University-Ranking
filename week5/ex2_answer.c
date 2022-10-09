@@ -168,7 +168,7 @@ void printList(int *L, int n) {
 
 
 
-void main(){
+int main(){
 
     int *L, n;
 

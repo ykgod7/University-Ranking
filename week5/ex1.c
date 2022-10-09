@@ -212,7 +212,7 @@ void deleteList(struct node *L) {
 
 
 
-void main(){
+int main(){
 
     int n, value;
 
