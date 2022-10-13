@@ -19,7 +19,7 @@
             </div>
 
         <!-- 두번째 줄 -->
-        <div class="d-flex year-rank" style="font-size: 20px; width: 240px; margin-top: 100px;">
+        <div class="d-flex year-rank" style="font-size: 20px; width: 260px; margin-top: 100px;">
             <i class="fa fa-crown m-2" style="margin-top: -1px"></i>
             <span style="padding: 5px 0">2022 국내 대학 순위 # {{ uni.rank }}</span>
         </div>
@@ -32,7 +32,11 @@
             </div>
             <div class="container m-2 box1">
                 <div style="font-size:25px; width: 100px; margin: auto; margin-top: 10px;"><span style="text-decoration: underline 2px">학교 소개</span></div>
-                <div class=" overflow-auto container p-font" style="font-size: 18px; font-weight: 400; height: 280px; color: #666; padding: 10px">{{ uni.intro }}</div>
+                <div class=" overflow-auto container p-font" style="font-size: 18px; font-weight: 400; height: 280px; color: #666; padding: 10px">
+                    {{ uni.intro }}
+                    <br /> <br />
+                    <div class="citation">출처 : <span><a :href="uni.citation" class="citation">{{ uni.citation }}</a></span></div>
+                </div>
             </div>
         </div>
 
@@ -282,5 +286,9 @@ thead, tbody tr {
     outline-style: solid;
     outline-width: 2px;
     outline-color: #0C2D48;
+}
+
+.citation {
+    font-size: 15px;
 }
 </style>

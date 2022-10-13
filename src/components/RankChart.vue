@@ -67,8 +67,8 @@ export default defineComponent({
       scales: {
         y: {
           reverse: true,
-          min: 1,
-          max: max.value + 5,
+          // min: 1,
+          // max: max.value + 5,
           ticks: {
             stepSize: 1
           }
