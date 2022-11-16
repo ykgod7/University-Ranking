@@ -52,7 +52,7 @@
                     <input 
                     onkeydown="return (event.keyCode!=13);"
                     type="search" 
-                    placeholder="University Name" 
+                    placeholder="학교명 검색" 
                     aria-describedby="button-addon3" 
                     class="form-control bg-none border-0 remove-x korean-font" 
                     style="font-size: 20px"
@@ -74,7 +74,7 @@
                 v-model="selectedSubject"
                 @change="changeList(year, source)"
                 >
-                    <option value="Subject">Subject</option>
+                    <option value="Subject">학과</option>
                     <!-- eslint-disable-next-line -->
                     <option v-if="source === 'QS'" v-for="(subject, i) in qs_subjects" :key="i" :value="subject">{{ subject }}</option>
                     <option v-else v-for="(subject, j) in the_subjects" :key="j" :value="subject">{{ subject }}</option>
