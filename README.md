@@ -7,4 +7,4 @@
 
 ## Vue 업데이트 후 Spring에 적용시킬 때
     npm install
-    nom run build
+    npm run build
