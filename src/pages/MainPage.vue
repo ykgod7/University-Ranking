@@ -12,7 +12,7 @@
                 </div>
             </div>
             <div>
-                <img src="../assets/logo.png" alt="Responsive image" style="max-width: 250px; margin-left: 1em;border-radius: 100%">
+                <img src="../assets/university_ranking.png" alt="Responsive image" style="max-width: 250px; margin-left: 1em;border-radius: 100%">
             </div>
         </div>
     </div>
