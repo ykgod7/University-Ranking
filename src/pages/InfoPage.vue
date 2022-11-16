@@ -27,8 +27,12 @@
         <!-- 세번째 줄 -->
         <div class="d-flex mt-2 div-container" style="height: 360px; background-color: white;">
             <div class="container m-2 box1" >
-                <div class="rankChart" style="margin-top: 10px;"><span style="text-decoration: underline 2px;">순위 그래프</span></div>
-                <RankChart :source="uni.source" />
+                <div class="rankChart" style="margin-top: 10px;">
+                    <button @click="graph_source = 'THE'" :class="[graph_source === 'THE' ? 'source-btn the-btn btn-clicked' : 'source-btn the-btn']">THE</button>
+                    <button @click="graph_source = 'QS'" :class="[graph_source === 'QS' ? 'source-btn qs-btn btn-clicked' : 'source-btn qs-btn']">QS</button>
+                    <span style="text-decoration: underline 2px; margin-left: 20px;">순위 그래프</span>
+                </div>
+                <RankChart :graph_source="graph_source" :key="graph_source" />
             </div>
             <div class="container m-2 box1">
                 <div style="font-size:25px; width: 100px; margin: auto; margin-top: 10px;"><span style="text-decoration: underline 2px">학교 소개</span></div>
@@ -85,7 +89,11 @@
 
         <!-- 다섯번째 줄 -->
         <div class="mt-5 container" style="width: 900px;">
-            <div><img src="../assets/ranking_64.png" style="max-width: 40px; max-height: 40px;">학과별 순위</div>
+            <div>
+                <img src="../assets/ranking_64.png" style="max-width: 40px; max-height: 40px;">학과별 순위
+                <button :class="[subject_source === 'THE' ? 'source-btn the-btn btn-clicked' : 'source-btn the-btn']" @click="subject_source = 'THE'" autofocus>THE</button>
+                <button :class="[subject_source === 'QS' ? 'source-btn qs-btn btn-clicked' : 'source-btn qs-btn']" @click="subject_source = 'QS'">QS</button>
+            </div>
             <table class="table table-striped" style="font-size: 22px;">
                 <thead class="" style="background-color: #0C2D48; color: white">
                     <tr style="font-size: 24px">
@@ -93,8 +101,14 @@
                         <th scope="col" class="col-5">순위</th>
                     </tr>
                 </thead>
-                <tbody style="max-height: 300px">
-                    <tr v-for="(rank, subject) in uni.subject" :key="subject">
+                <tbody v-if="subject_source === 'THE'" style="max-height: 300px">   
+                    <tr v-for="(rank, subject) in the_data" :key="subject">
+                        <td>{{ subject }}</td>
+                        <td>{{ rank }}</td>
+                    </tr>
+                </tbody>
+                <tbody v-else style="max-height: 300px">
+                    <tr v-for="(rank, subject) in qs_data" :key="subject">
                         <td>{{ subject }}</td>
                         <td>{{ rank }}</td>
                     </tr>
@@ -130,18 +144,29 @@ export default {
         const route = useRoute()
         const uni = ref(null)
         const loading = ref(true)
+        const subject_source = ref('THE')
+        const graph_source = ref('THE')
+        const qs_data = ref()  // 학과별 순위 데이터
+        const the_data = ref()  // 학과별 순위 데이터
         
         const getUniveristy = async () => {
             const res = await axios.get('http://localhost:5000/universities?name=' + route.params.name)
             uni.value = res.data[0]
+            qs_data.value = res.data[0].source.QS["2022"].subject   // 최신 연도로 바꿔야함
+            the_data.value = res.data[0].source.THE["2022"].subject
             loading.value = false
         }
 
         getUniveristy()
 
+        
         return {
             uni,
             loading,
+            subject_source,
+            qs_data,
+            the_data,
+            graph_source,
             
         }
     },
@@ -201,8 +226,9 @@ tr {
 
 .rankChart {
     font-size: 25px;
-    width: 110px;
+    width: 100%;
     margin: auto;
+    /* text-align: center; */
 }
 
 .circle {
@@ -290,5 +316,87 @@ thead, tbody tr {
 
 .citation {
     font-size: 15px;
+}
+
+
+.source-btn {
+  align-items: center;
+  appearance: none;
+  background-color: #fff;
+  border-radius: 24px;
+  border-style: none;
+  box-shadow: rgba(0, 0, 0, .2) 0 3px 5px -1px,rgba(0, 0, 0, .14) 0 6px 10px 0,rgba(0, 0, 0, .12) 0 1px 18px 0;
+  box-sizing: border-box;
+  color: #3c4043;
+  cursor: pointer;
+  display: inline-flex;
+  fill: currentcolor;
+  font-family: "Google Sans",Roboto,Arial,sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  height: 48px;
+  justify-content: center;
+  letter-spacing: .25px;
+  line-height: normal;
+  max-width: 100%;
+  overflow: visible;
+  padding: 2px 24px;
+  position: relative;
+  text-align: center;
+  text-transform: none;
+  transition: box-shadow 280ms cubic-bezier(.4, 0, .2, 1),opacity 15ms linear 30ms,transform 270ms cubic-bezier(0, 0, .2, 1) 0ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: auto;
+  will-change: transform,opacity;
+  z-index: 0;
+  margin: 5px;
+  bottom: 7px;
+  width: 80px;
+}
+
+.source-btn:hover {
+  opacity: 0.8;
+  color: #174ea6;
+}   
+
+.source-btn:active {
+  box-shadow: 0 4px 4px 0 rgb(60 64 67 / 30%), 0 8px 12px 6px rgb(60 64 67 / 15%);
+  outline: none;
+}
+
+
+.btn-clicked  {
+    outline: none;
+    border: 2px solid #52527a;
+}
+
+.source-btn:not(:disabled) {
+  box-shadow: rgba(60, 64, 67, .3) 0 1px 3px 0, rgba(60, 64, 67, .15) 0 4px 8px 3px;
+}
+
+.source-btn:not(:disabled):hover {
+  box-shadow: rgba(60, 64, 67, .3) 0 2px 3px 0, rgba(60, 64, 67, .15) 0 6px 10px 4px;
+}
+
+.source-btn:not(:disabled):focus {
+  box-shadow: rgba(60, 64, 67, .3) 0 1px 3px 0, rgba(60, 64, 67, .15) 0 4px 8px 3px;
+}
+
+.source-btn:not(:disabled):active {
+  box-shadow: rgba(60, 64, 67, .3) 0 4px 4px 0, rgba(60, 64, 67, .15) 0 8px 12px 6px;
+}
+
+.source-btn:disabled {
+  box-shadow: rgba(60, 64, 67, .3) 0 1px 3px 0, rgba(60, 64, 67, .15) 0 4px 8px 3px;
+}
+
+.qs-btn {
+    background: linear-gradient(310deg, rgba(255,255,220,1) 0%, rgba(218,218,218,1) 100%);
+}
+
+.the-btn {
+    background: linear-gradient(310deg, rgba(220,225,255,1) 0%, rgba(255,201,201,1) 100%);
 }
 </style>

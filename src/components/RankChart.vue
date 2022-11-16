@@ -17,31 +17,36 @@ Chart.register(...registerables);
 export default defineComponent({
   name: 'RankChart',
   components: { LineChart },
-  props: {
-    source: {
-      type: String
-    }
-  },
+  props: ['graph_source'],
   setup(props) {
     onMounted(() => {
-      
-      getData(props.source)
+      getData()
     })
     
     const route = useRoute()
-    const uni = ref(null)
     const years = ref([])
     const ranks = ref([])
     const max = ref(0)
-    const getData = async (source) => {
-      const res = await axios.get(`http://localhost:5000/universities?source=${source}&name=` + route.params.name + `&_sort=year`)
-      uni.value = res.data
-      for (let i = 0; i < uni.value.length; i++) {
-        years.value.push(uni.value[i].year)
-        ranks.value.push(uni.value[i].rank)
-        if (max.value <  uni.value[i].rank) {
-          max.value = uni.value[i].rank
-        }
+    const qs_data = ref()   // 그래프 데이터
+    const qs_rank = ref([])
+    const the_data = ref()
+    const the_rank = ref([])
+
+
+    
+    const getData = async () => {
+      const res = await axios.get(`http://localhost:5000/universities?name=` + route.params.name)
+      qs_data.value = res.data[0].source.QS
+      the_data.value = res.data[0].source.THE
+
+      for (let i = 0; i < Object.keys(qs_data.value).length; i++) {
+        years.value.push(Object.keys(qs_data.value)[i])  // 연도 데이터 [2020, 2021, 2022]
+        qs_rank.value.push(qs_data.value[Object.keys(qs_data.value)[i]].rank)
+        the_rank.value.push(the_data.value[Object.keys(the_data.value)[i]].rank)
+
+        // if (max.value <  uni.value[i].rank) {
+        //   max.value = uni.value[i].rank
+        // }
       }
     }
 
@@ -50,7 +55,7 @@ export default defineComponent({
       labels: years.value,
       datasets: [
         {
-          data: ranks.value,
+          data: (props.graph_source == 'THE') ? the_rank.value : qs_rank.value,
           backgroundColor: ['#00cc44'],
           borderColor: ['#0d0d0d'],
           borderWidth: 1
@@ -76,7 +81,11 @@ export default defineComponent({
       }
     };
 
-    return { testData, options };
+    return { 
+      testData, 
+      options
+ 
+    };
   },
 });
 </script>

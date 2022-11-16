@@ -12,7 +12,11 @@
   <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
     © 2020 Copyright:
     <a class="text-white" href="">K-Ranking.com</a>
+    <div>
+      Contact : ejihwan7@gmail.com
+    </div>
   </div>
+
   <!-- Copyright -->
 </footer>
   

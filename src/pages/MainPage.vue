@@ -41,9 +41,8 @@
             <!-- Year Filter -->
             <div class="col-2">
                 <select class="btn-lg w-100 dropdown-toggle border border-secondary rounded-3 korean-font" style="font-size: 20px; height: 48px"
-                v-model="year" @change="getData(year, source)">
-                    <option value="2021" selected="selected">2021</option>
-                    <option value="2022">2022</option>
+                 v-model="year" @change="getData(year, source)">
+                    <option :key="i" v-for="(value, key, i) in years" :value="key">{{ key }}</option>
                 </select>
             </div>
             
@@ -73,11 +72,13 @@
                 class="btn-lg w-100 dropdown-toggle border border-secondary rounded-3 korean-font" 
                 style="font-size: 20px; height: 48px"
                 v-model="selectedSubject"
-                @change="changeList(year)"
+                @change="changeList(year, source)"
                 >
                     <option value="Subject">Subject</option>
                     <!-- eslint-disable-next-line -->
-                    <option v-for="(rank, subject, index) in subjects" :key="subject" :value="subject">{{ subject }}</option>
+                    <option v-if="source === 'QS'" v-for="(subject, i) in qs_subjects" :key="i" :value="subject">{{ subject }}</option>
+                    <option v-else v-for="(subject, j) in the_subjects" :key="j" :value="subject">{{ subject }}</option>
+
                 </select>
             </div>
         </form>
@@ -95,16 +96,16 @@
                 </div>
             </div>
 
-            <div v-for="(university, idx) in filteredUniversity" :key="university.id" class="card m-2" style="height: 100px; border-color: #bfbfbf">
+            <div v-for="(university, id) in filteredUniversity" :key="university.id" class="card m-2" style="height: 100px; border-color: #bfbfbf">
                 <div 
-                @click="DetailPage(university.name)"
+                @click="DetailPage(university.name), changeState()"
                 class="card-body h-100 my-div">
                     <div class="d-flex h-100 align-items-center list-text">
                         <div v-if="subjectState" class="col-1">
-                            <div class="m-2 align-self-center text-center idx"> {{ idx + 1 }}</div>
+                            <div class="m-2 align-self-center text-center idx"> {{ id + 1 }}</div>
                         </div>
                         <div v-else class="col-1">
-                            <div class="m-2 align-self-center text-center idx">{{ university.rank }}</div>
+                            <div class="m-2 align-self-center text-center idx">{{ id + 1 }}</div>
                         </div>
                         <div class="m-2 col-2 h-100 text-center text-center">
                             <img :src="require(`../assets/logo/${university.name}.png`)" class="h-100 mx-auto">
@@ -146,17 +147,63 @@ export default {
 
     setup() {
         onMounted(() => {
-            console.log('new')
-            loadFilter()
-            getData(proxy.filters[1], proxy.filters[0])
+                
+
+            if (proxy.filters.includes(true)) {
+                loadFilter()
+                getData(proxy.filters[1], proxy.filters[0])
+                setTimeout(function (){
+                    proxy.filters[3] = false
+                }, 500)
+                
+                
+                
+            } else {
+                getData(year.value, 'THE')
+            } 
         })
 
-        onBeforeUnmount(() => {
+        onBeforeUnmount(() => {    // 뒤로가기 했을 때 데이터 불러오기
             replaceValue(source.value, 0)
             replaceValue(year.value, 1)
             replaceValue(selectedSubject.value, 2)
+            replaceValue(proxyState, 3)
         })
 
+
+
+
+
+        const router = useRouter()
+        const year = ref('2022')
+        const universities = ref([])
+        const qs_subjects = ref([])
+        const the_subjects = ref([])
+        const source = ref('THE')
+        const years = ref()
+
+// Load Data
+        const getData = async (year, e) => {
+            // const res = await axios.get(`http://localhost:5000/universities?year=${year}&source=${e}&_sort=rank`)
+            const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.rank`)
+            source.value = e
+            universities.value = res.data
+            qs_subjects.value = res.data[0].qs_subjects
+            the_subjects.value = res.data[0].the_subjects
+            if (proxy.filters.includes(true)) {
+                console.log(proxy.filters[2])
+                selectedSubject.value = proxy.filters[2]
+            } else {
+                selectedSubject.value = 'Subject'
+            }
+            years.value = universities.value[0].source.QS // 연도 for loop
+        }
+
+// 뒤로가기 눌렀을 때 데이터 가져오기     
+        let proxyState = false
+        const changeState = () => {
+            proxyState = true
+        }
         const { proxy } = getCurrentInstance()
         const replaceValue = (val, idx) => {
             proxy.filters[idx] = val
@@ -164,21 +211,6 @@ export default {
         const loadFilter = () => {
             source.value = proxy.filters[0]
             year.value = proxy.filters[1]
-            selectedSubject.value = proxy.filters[2]
-        }
-
-        const router = useRouter()
-        const year = ref('2021')
-        const universities = ref([])
-        const subjects = ref([])
-        const source = ref('THE')
-
-// Load Data
-        const getData = async (year, e) => {
-            const res = await axios.get(`http://localhost:5000/universities?year=${year}&source=${e}&_sort=rank`)
-            source.value = e
-            universities.value = res.data
-            subjects.value = res.data[0].subject
             selectedSubject.value = proxy.filters[2]
         }
 
@@ -196,14 +228,16 @@ export default {
 // University Subject filter
         const selectedSubject = ref('Subject')
         const subjectState = ref(false)
-        const changeList = async (year) => {
+        const changeList = async (year, e) => {
             if (selectedSubject.value === 'Subject') {
-                const res = await axios.get(`http://localhost:5000/universities?year=${year}&source=${source.value}&_sort=rank`)
+                const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.rank`)
                 universities.value = res.data
                 subjectState.value = false
                 proxy.filters[2] = 'Subject'
             } else {
-            const res = await axios.get(`http://localhost:5000/universities?year=${year}&subject.${selectedSubject.value}_gte=1&_sort=subject.${selectedSubject.value}&source=${source.value}`)
+            // const res = await axios.get(`http://localhost:5000/universities?year=${year}&subject.${selectedSubject.value}_gte=1&_sort=subject.${selectedSubject.value}&source=${source.value}`)
+            const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.subejct.${selectedSubject.value}`)
+            console.log(selectedSubject.value)
             universities.value = res.data
             subjectState.value = true
             proxy.filters[2] = selectedSubject.value
@@ -227,16 +261,18 @@ export default {
             year,
             universities,
             getData,
-            subjects,
+            qs_subjects,
+            the_subjects,
             searchUniversity,
             filteredUniversity,
             selectedSubject,
             changeList,
             DetailPage,
-            // FilterList,
+            years,
             source,
             subjectState,
-            replaceValue
+            replaceValue,
+            changeState
             
         }
     },
@@ -246,6 +282,10 @@ export default {
 
 
 <style scoped>
+.btn-the:hover, .btn-qs:hover {
+    opacity: 0.8;
+}
+
 #titleDiv {
     margin-top: 150px;
 }
@@ -368,7 +408,8 @@ font-family: 'Do Hyeon', sans-serif;
 
 .currentSource {
     box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
-    filter: brightness(80%)
+    filter: brightness(80%);
+    box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 1px, rgba(0, 0, 0, 0.07) 0px 2px 2px, rgba(0, 0, 0, 0.07) 0px 4px 4px, rgba(0, 0, 0, 0.07) 0px 8px 8px, rgba(0, 0, 0, 0.07) 0px 16px 16px;
 }
 
 .beforeClicked {
