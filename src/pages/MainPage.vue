@@ -130,7 +130,7 @@
 
 import { ref, onMounted, computed, onBeforeUnmount, getCurrentInstance } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '@/axios'
 
 
 export default {
@@ -183,19 +183,37 @@ export default {
         const years = ref()
 
 // Load Data
-        const getData = async (year, e) => {
-            // const res = await axios.get(`http://localhost:5000/universities?year=${year}&source=${e}&_sort=rank`)
-            const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.rank`)
-            source.value = e
-            universities.value = res.data
-            qs_subjects.value = res.data[0].qs_subjects
-            the_subjects.value = res.data[0].the_subjects
-            if (proxy.filters.includes(true)) {
-                console.log(proxy.filters[2])
-                selectedSubject.value = proxy.filters[2]
-            } else {
+        const getData = async (current_year, e) => {
+            // const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.rank`)
+            const res = await axios.get()
+            .then(function (response) {
+                if (proxy.filters.includes(true)){
+                    selectedSubject.value = proxy.filters[2]
+                    universities.value = response.data.universities.sort(function(a, b) {
+                        if (a.source[e][current_year].subject[selectedSubject.value] > b.source[e][current_year].subject[selectedSubject.value]) {
+                            return 1
+                        }
+                        if (a.source[e][current_year].subject[selectedSubject.value] < b.source[e][current_year].subject[selectedSubject.value]) {
+                            return -1
+                        }
+                        return 0
+                    })
+                } else {
                 selectedSubject.value = 'Subject'
-            }
+                universities.value = response.data.universities.sort(function(a, b){
+                    if (a.source[e][current_year].rank > b.source[e][current_year].rank) {
+                        return 1
+                    }
+                    if (a.source[e][current_year].rank < b.source[e][current_year].rank) {
+                        return -1
+                    }
+                    return 0
+                })
+            }})
+            source.value = e
+
+            qs_subjects.value = universities.value[0].qs_subjects
+            the_subjects.value = universities.value[0].the_subjects
             years.value = universities.value[0].source.QS // 연도 for loop
         }
 
@@ -228,17 +246,26 @@ export default {
 // University Subject filter
         const selectedSubject = ref('Subject')
         const subjectState = ref(false)
-        const changeList = async (year, e) => {
+        const changeList = async (current_year, e) => {
             if (selectedSubject.value === 'Subject') {
-                const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.rank`)
-                universities.value = res.data
+                getData(current_year, e)
                 subjectState.value = false
                 proxy.filters[2] = 'Subject'
             } else {
             // const res = await axios.get(`http://localhost:5000/universities?year=${year}&subject.${selectedSubject.value}_gte=1&_sort=subject.${selectedSubject.value}&source=${source.value}`)
-            const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.subejct.${selectedSubject.value}`)
-            console.log(selectedSubject.value)
-            universities.value = res.data
+            // const res = await axios.get(`http://localhost:5000/universities?_sort=source.${e}.${year}.subejct.${selectedSubject.value}`)
+            const res = await axios.get()
+            .then(function (response) {
+                universities.value = response.data.universities.sort(function(a, b){
+                    if (a.source[e][current_year].subject[selectedSubject.value] > b.source[e][current_year].subject[selectedSubject.value]) {
+                        return 1
+                    }
+                    if (a.source[e][current_year].subject[selectedSubject.value] < b.source[e][current_year].subject[selectedSubject.value]) {
+                        return -1
+                    }
+                    return 0
+                })
+            })
             subjectState.value = true
             proxy.filters[2] = selectedSubject.value
             }

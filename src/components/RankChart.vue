@@ -8,7 +8,7 @@
 import { defineComponent, onMounted, defineProps } from 'vue';
 import { LineChart } from 'vue-chart-3';
 import { Chart, registerables } from "chart.js";
-import axios from 'axios'
+import axios from '@/axios'
 import { useRoute } from 'vue-router'
 import { ref, reactive } from '@vue/reactivity'
 
@@ -31,13 +31,21 @@ export default defineComponent({
     const qs_rank = ref([])
     const the_data = ref()
     const the_rank = ref([])
+    const uni = ref()
 
 
     
     const getData = async () => {
-      const res = await axios.get(`http://localhost:5000/universities?name=` + route.params.name)
-      qs_data.value = res.data[0].source.QS
-      the_data.value = res.data[0].source.THE
+      const res = await axios.get()
+      res.data.universities.filter(value =>{
+                if (value.name === route.params.name) {
+                    uni.value = value
+                }
+            })
+      
+      qs_data.value = uni.value.source.QS
+      the_data.value = uni.value.source.THE
+
 
       for (let i = 0; i < Object.keys(qs_data.value).length; i++) {
         years.value.push(Object.keys(qs_data.value)[i])  // 연도 데이터 [2020, 2021, 2022]

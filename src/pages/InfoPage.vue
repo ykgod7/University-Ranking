@@ -128,7 +128,7 @@
 
 
 <script>
-import axios from 'axios'
+import axios from '@/axios'
 import { useRoute } from 'vue-router'
 import { ref } from '@vue/reactivity'
 import RankChart from '../components/RankChart.vue'
@@ -148,13 +148,21 @@ export default {
         const graph_source = ref('THE')
         const qs_data = ref()  // 학과별 순위 데이터
         const the_data = ref()  // 학과별 순위 데이터
-        
+
         const getUniveristy = async () => {
-            const res = await axios.get('http://localhost:5000/universities?name=' + route.params.name)
-            uni.value = res.data[0]
-            qs_data.value = res.data[0].source.QS["2022"].subject   // 최신 연도로 바꿔야함
-            the_data.value = res.data[0].source.THE["2022"].subject
+            const res = await axios.get('http://localhost:5000/universities?')
+            
+            // 데이터 필터링 적용
+            res.data.universities.filter(value =>{
+                if (value.name === route.params.name) {
+                    uni.value = value
+                }
+            })
+            
+            qs_data.value = uni.value.source.QS["2022"].subject   // 최신 연도로 바꿔야함
+            the_data.value = uni.value.source.THE["2022"].subject
             loading.value = false
+            
         }
 
         getUniveristy()
